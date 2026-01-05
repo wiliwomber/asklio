@@ -70,10 +70,10 @@ export async function extractProcurementOffer(pdfPath: string) {
     const cleanedJson = cleanJsonString(rawContent);
     console.log("JSON cleaned successfully");
 
+    console.log(cleanedJson);
     return cleanedJson;
   } catch (error) {
     console.error("Error in extractProcurementOffer:", error);
     throw error;
   }
 }
-
