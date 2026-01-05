@@ -10,7 +10,7 @@ async function bootstrap(): Promise<void> {
     throw new Error("PORT must be a valid number");
   }
 
-  startServer(port);
+  await startServer(port);
 }
 
 bootstrap().catch((error) => {

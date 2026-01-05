@@ -1,3 +1,20 @@
+import {
+  Alert,
+  AlertDescription,
+  AlertIcon,
+  Box,
+  Button,
+  Card,
+  CardBody,
+  Flex,
+  FormControl,
+  FormHelperText,
+  FormLabel,
+  Input,
+  Stack,
+  Text,
+  useToast,
+} from "@chakra-ui/react";
 import { useMemo, useState, type ChangeEvent, type FormEvent } from "react";
 import { uploadPdf } from "../api/upload";
 import { type UploadResponse } from "../types";
@@ -16,6 +33,7 @@ export default function PdfUploadForm() {
   const [result, setResult] = useState<UploadResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const toast = useToast();
 
   const fileLabel = useMemo(() => {
     if (!selectedFile) {
@@ -70,49 +88,77 @@ export default function PdfUploadForm() {
     try {
       const response = await uploadPdf(selectedFile);
       setResult(response);
+      toast({
+        status: "success",
+        title: "Uploaded",
+        description: "PDF stored successfully",
+        duration: 3000,
+        isClosable: true,
+      });
     } catch (uploadError) {
       const errorMessage = uploadError instanceof Error ? uploadError.message : "Failed to upload PDF";
       setError(errorMessage);
+      toast({
+        status: "error",
+        title: "Upload failed",
+        description: errorMessage,
+        duration: 4000,
+        isClosable: true,
+      });
     } finally {
       setIsUploading(false);
     }
   };
 
   return (
-    <form className="card" onSubmit={handleSubmit}>
-      <div className="field">
-        <label htmlFor="pdfInput">Upload PDF</label>
-        <div className="file-input">
-          <input
-            id="pdfInput"
-            name="pdf"
-            type="file"
-            accept="application/pdf"
-            onChange={handleFileChange}
-            disabled={isUploading}
-          />
-          <span className="file-label">{fileLabel}</span>
-        </div>
-        <p className="help-text">Only PDF files up to 10MB are accepted.</p>
-      </div>
+    <Card>
+      <CardBody>
+        <Stack as="form" spacing={4} onSubmit={handleSubmit}>
+          <FormControl>
+            <FormLabel htmlFor="pdfInput">Upload PDF</FormLabel>
+            <Input
+              id="pdfInput"
+              name="pdf"
+              type="file"
+              accept="application/pdf"
+              onChange={handleFileChange}
+              isDisabled={isUploading}
+              variant="filled"
+              py={2}
+            />
+            <FormHelperText>Only PDF files up to 10MB are accepted.</FormHelperText>
+            <Text fontSize="sm" color="gray.600" mt={1}>
+              {fileLabel}
+            </Text>
+          </FormControl>
 
-      <div className="actions">
-        <button type="submit" disabled={!selectedFile || isUploading}>
-          {isUploading ? "Uploading..." : "Send to backend"}
-        </button>
-        <button type="button" className="ghost" onClick={() => setSelectedFile(null)} disabled={isUploading}>
-          Clear selection
-        </button>
-      </div>
+          <Flex gap={3} wrap="wrap">
+            <Button type="submit" colorScheme="blue" isDisabled={!selectedFile || isUploading} isLoading={isUploading}>
+              Send to backend
+            </Button>
+            <Button variant="outline" onClick={() => setSelectedFile(null)} isDisabled={isUploading}>
+              Clear selection
+            </Button>
+          </Flex>
 
-      {error && <p className="error">{error}</p>}
-      {result && (
-        <div className="result">
-          <p className="success">{result.message}</p>
-          <p className="meta">File name: {result.fileName}</p>
-          <p className="meta">File size: {(result.fileSize / (1024 * 1024)).toFixed(2)} MB</p>
-        </div>
-      )}
-    </form>
+          {error && (
+            <Alert status="error">
+              <AlertIcon />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
+          {result && (
+            <Box borderWidth="1px" borderRadius="md" p={3} bg="blue.50" borderColor="blue.200">
+              <Text fontWeight="bold" color="blue.700">
+                {result.message}
+              </Text>
+              <Text color="gray.700">File name: {result.fileName}</Text>
+              <Text color="gray.700">File size: {(result.fileSize / (1024 * 1024)).toFixed(2)} MB</Text>
+            </Box>
+          )}
+        </Stack>
+      </CardBody>
+    </Card>
   );
 }

@@ -53,6 +53,35 @@ h1 {
   gap: 14px;
 }
 
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.tab {
+  border: 1px solid #cbd5e1;
+  background: white;
+  color: #0f172a;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 120ms ease;
+}
+
+.tab.active {
+  background: #1d4ed8;
+  color: white;
+  border-color: #1d4ed8;
+  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.24);
+}
+
+.tab:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .card {
   background: white;
   border-radius: 16px;
@@ -160,6 +189,50 @@ button.ghost {
 .meta {
   margin: 0;
   color: #475569;
+}
+
+.table {
+  display: grid;
+  gap: 6px;
+}
+
+.table-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.table-row {
+  display: grid;
+  grid-template-columns: 1.8fr 0.7fr 1.1fr 0.6fr;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.table-head {
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-weight: 700;
+  color: #475569;
+}
+
+.link-button {
+  text-decoration: none;
+  color: #1d4ed8;
+  font-weight: 700;
+}
+
+.ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 @media (max-width: 640px) {

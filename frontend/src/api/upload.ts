@@ -1,4 +1,4 @@
-import { type UploadResponse } from "../types";
+import { type UploadResponse, type UploadSummary } from "../types";
 
 const DEFAULT_API_BASE_URL = "http://localhost:3000";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? DEFAULT_API_BASE_URL;
@@ -18,4 +18,18 @@ export async function uploadPdf(file: File): Promise<UploadResponse> {
   }
 
   return response.json();
+}
+
+export async function fetchUploads(): Promise<UploadSummary[]> {
+  const response = await fetch(`${API_BASE_URL}/api/uploads`);
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch uploads");
+  }
+
+  return response.json();
+}
+
+export function buildPdfUrl(id: string): string {
+  return `${API_BASE_URL}/api/uploads/${id}`;
 }
