@@ -1,7 +1,7 @@
 import { ChatOpenAI } from "@langchain/openai";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { loadPdfText } from "./pdfLoader.ts";
-import { OfferExtractionSchema } from "../schema.ts";
+import { OfferExtractionSchema } from "../domain/models/offerSchemas.js";
 import { EXTRACTION_PROMPT } from "./prompts.ts";
 
 

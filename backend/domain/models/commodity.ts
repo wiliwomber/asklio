@@ -76,33 +76,12 @@ export enum CategoryEnum {
   PRODUCTION = "Production",
 }
 
-// Zod schemas
-export const OrderLineSchema = z.object({
-  product: z.string(),
-  unitPrice: z.number().positive(),
-  quantity: z.number().positive().int(),
-  totalCost: z.number().positive(),
-});
-
-export const OfferExtractionSchema = z.object({
-  requestor: z.string().nullable(),
-  vendor: z.string(),
-  commodityGroup: z.nativeEnum(CommodityGroupEnum),
-  description: z.string(),
-  vatId: z.string(),
-  orderLines: z.array(OrderLineSchema),
-  totalCost: z.number().positive(),
-});
-
 export const CommodityCategorySchema = z.object({
   id: z.number().int().positive(),
   category: z.nativeEnum(CategoryEnum),
   commodityGroup: z.nativeEnum(CommodityGroupEnum),
 });
 
-// TypeScript types inferred from Zod schemas
-export type OrderLine = z.infer<typeof OrderLineSchema>;
-export type OfferExtraction = z.infer<typeof OfferExtractionSchema>;
 export type CommodityCategory = z.infer<typeof CommodityCategorySchema>;
 
 export const COMMODITY_CATEGORIES: readonly CommodityCategory[] = [
