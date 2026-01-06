@@ -1,5 +1,7 @@
 import { type NextFunction, type Request, type Response } from "express";
-import { getUploadContent, listUploads, storeUpload } from "../../domain/services/uploadService.js";
+import { getUploadContent, listUploadsWithRequests, storeUpload } from "../../domain/services/uploadService.js";
+import { createProcurementRequest } from "../../domain/services/procurementRequestService.js";
+import { extractProcurementOfferFromBuffer } from "../../parser/extractor.js";
 
 export async function uploadPdf(request: Request, response: Response, next: NextFunction) {
   try {
@@ -8,18 +10,24 @@ export async function uploadPdf(request: Request, response: Response, next: Next
       return;
     }
 
-    const { id, summary } = await storeUpload({
+    const { insertedId, summary } = await storeUpload({
       fileName: request.file.originalname,
       mimeType: request.file.mimetype,
       fileSize: request.file.size,
       data: request.file.buffer,
     });
 
+    const extraction = await extractProcurementOfferFromBuffer(request.file.buffer);
+
+    const procurementRequest = await createProcurementRequest({ uploadId: insertedId, extraction });
+
     response.status(200).json({
-      id,
+      id: insertedId.toString(),
       message: "PDF stored successfully",
       fileName: summary.fileName,
       fileSize: summary.fileSize,
+      uploadedAt: summary.uploadedAt,
+      procurementRequest,
     });
   } catch (error) {
     next(error);
@@ -28,7 +36,7 @@ export async function uploadPdf(request: Request, response: Response, next: Next
 
 export async function listUploadsController(_request: Request, response: Response, next: NextFunction) {
   try {
-    const uploads = await listUploads();
+    const uploads = await listUploadsWithRequests();
     response.json(uploads);
   } catch (error) {
     next(error);

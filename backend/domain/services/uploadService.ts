@@ -1,6 +1,8 @@
 import { Binary, ObjectId } from "mongodb";
 import { getUploadsCollection } from "../../db/uploadsCollection.js";
 import { type StoredUpload, type UploadContent, type UploadSummary } from "../models/upload.js";
+import { type ProcurementRequest, type ProcurementStatus } from "../models/procurementRequest.js";
+import { type OfferExtraction } from "../models/offerSchemas.js";
 
 function toBuffer(data: StoredUpload["data"]): Buffer | null {
   if (data instanceof Buffer) {
@@ -31,6 +33,18 @@ function mapToSummary(document: StoredUpload): UploadSummary {
   };
 }
 
+type ProcurementRequestEmbedded = {
+  id: string;
+  status: ProcurementStatus;
+  extraction: OfferExtraction;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type UploadWithRequest = UploadSummary & {
+  procurementRequest?: ProcurementRequestEmbedded;
+};
+
 export async function storeUpload(params: { fileName: string; mimeType: string; fileSize: number; data: Buffer }) {
   const uploads = await getUploadsCollection();
 
@@ -45,7 +59,7 @@ export async function storeUpload(params: { fileName: string; mimeType: string; 
   const { insertedId } = await uploads.insertOne(document);
 
   return {
-    id: insertedId.toString(),
+    insertedId,
     summary: mapToSummary({ ...document, _id: insertedId }),
   };
 }
@@ -58,6 +72,47 @@ export async function listUploads(): Promise<UploadSummary[]> {
     .toArray();
 
   return documents.map(mapToSummary);
+}
+
+export async function listUploadsWithRequests(): Promise<UploadWithRequest[]> {
+  const uploads = await getUploadsCollection();
+
+  const documents = await uploads
+    .aggregate<
+      StoredUpload & {
+        procurementRequest?: ProcurementRequest;
+      }
+    >([
+      {
+        $lookup: {
+          from: "procurementRequests",
+          localField: "_id",
+          foreignField: "uploadId",
+          as: "procurementRequest",
+        },
+      },
+      { $unwind: { path: "$procurementRequest", preserveNullAndEmptyArrays: true } },
+      { $project: { data: 0 } },
+      { $sort: { uploadedAt: -1 } },
+    ])
+    .toArray();
+
+  return documents.map((document) => {
+    const summary = mapToSummary(document);
+    const request = document.procurementRequest;
+
+    const procurementRequest = request
+      ? {
+          id: request._id?.toString() ?? "",
+          status: request.status,
+          extraction: request.extraction,
+          createdAt: request.createdAt.toISOString(),
+          updatedAt: request.updatedAt.toISOString(),
+        }
+      : undefined;
+
+    return { ...summary, procurementRequest };
+  });
 }
 
 export async function getUploadContent(id: string): Promise<UploadContent | null> {

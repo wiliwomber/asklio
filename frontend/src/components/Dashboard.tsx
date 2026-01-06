@@ -91,7 +91,10 @@ export default function Dashboard() {
               <Thead>
                 <Tr>
                   <Th>File name</Th>
+                  <Th>Vendor</Th>
                   <Th>Size</Th>
+                  <Th>Request status</Th>
+                  <Th>Total</Th>
                   <Th>Uploaded</Th>
                   <Th>Action</Th>
                 </Tr>
@@ -102,7 +105,18 @@ export default function Dashboard() {
                     <Td maxW="320px">
                       <Text noOfLines={1}>{upload.fileName}</Text>
                     </Td>
+                    <Td>{upload.procurementRequest?.extraction.vendor ?? "–"}</Td>
                     <Td>{formatSize(upload.fileSize)}</Td>
+                    <Td>
+                      {upload.procurementRequest ? (
+                        <Badge colorScheme="blue" borderRadius="md" textTransform="capitalize">
+                          {upload.procurementRequest.status}
+                        </Badge>
+                      ) : (
+                        <Badge colorScheme="gray">Pending</Badge>
+                      )}
+                    </Td>
+                    <Td>{upload.procurementRequest?.extraction.totalCost ?? "–"}</Td>
                     <Td>{formatDate(upload.uploadedAt)}</Td>
                     <Td>
                       <Button as="a" href={buildPdfUrl(upload.id)} target="_blank" rel="noreferrer" size="sm" variant="outline">

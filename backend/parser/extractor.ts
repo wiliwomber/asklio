@@ -1,9 +1,8 @@
 import { ChatOpenAI } from "@langchain/openai";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
-import { loadPdfText } from "./pdfLoader.ts";
-import { OfferExtractionSchema } from "../domain/models/offerSchemas.js";
+import { loadPdfText, loadPdfTextFromBuffer } from "./pdfLoader.ts";
+import { OfferExtractionSchema, type OfferExtraction } from "../domain/models/offerSchemas.js";
 import { EXTRACTION_PROMPT } from "./prompts.ts";
-
 
 const OPENAI_MODEL = "gpt-4.1-mini";
 const OPENAI_TEMPERATURE = 0;
@@ -49,31 +48,25 @@ function cleanJsonString(raw: string): string {
   return cleaned;
 }
 
+async function extractFromText(offerText: string): Promise<OfferExtraction> {
+  const prompt = createChatPrompt();
+  const llm = createLanguageModel();
+  const chain = prompt.pipe(llm);
 
-export async function extractProcurementOffer(pdfPath: string) {
-  try {
-    console.log(`Loading PDF from: ${pdfPath}`);
-    const offerText = await loadPdfText(pdfPath);
-    console.log(`PDF loaded successfully. Text length: ${offerText.length}`);
+  const response = await chain.invoke({ offerText });
+  const rawContent = extractJsonContent(response.content);
+  const cleanedJson = cleanJsonString(rawContent);
 
-    const prompt = createChatPrompt();
-    const llm = createLanguageModel();
-    const chain = prompt.pipe(llm);
+  const parsed = JSON.parse(cleanedJson);
+  return OfferExtractionSchema.parse(parsed);
+}
 
-    console.log("Invoking LLM...");
-    const response = await chain.invoke({ offerText });
-    console.log("LLM response received");
+export async function extractProcurementOfferFromPath(pdfPath: string): Promise<OfferExtraction> {
+  const offerText = await loadPdfText(pdfPath);
+  return extractFromText(offerText);
+}
 
-    const rawContent = extractJsonContent(response.content);
-    console.log(`Raw content extracted. Length: ${rawContent.length}`);
-
-    const cleanedJson = cleanJsonString(rawContent);
-    console.log("JSON cleaned successfully");
-
-    console.log(cleanedJson);
-    return cleanedJson;
-  } catch (error) {
-    console.error("Error in extractProcurementOffer:", error);
-    throw error;
-  }
+export async function extractProcurementOfferFromBuffer(buffer: Buffer): Promise<OfferExtraction> {
+  const offerText = await loadPdfTextFromBuffer(buffer);
+  return extractFromText(offerText);
 }
