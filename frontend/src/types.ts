@@ -11,6 +11,7 @@ export type OfferExtraction = {
   requestor?: string | null;
   vendor?: string | null;
   commodityGroup?: string | null;
+  category?: string | null;
   description?: string | null;
   vatId?: string | null;
   orderLines: OrderLine[];
@@ -23,6 +24,7 @@ export type ProcurementRequest = {
   requestor?: string | null;
   vendor?: string | null;
   commodityGroup?: string | null;
+  category?: string | null;
   description?: string | null;
   vatId?: string | null;
   orderLines: OrderLine[];
@@ -40,10 +42,6 @@ export type ProcurementRequest = {
 export type UploadResponse = {
   id: string;
   message: string;
-  procurementRequest: ProcurementRequest;
-};
-
-export type UploadSummary = ProcurementRequest;
   procurementRequest: ProcurementRequest;
 };
 

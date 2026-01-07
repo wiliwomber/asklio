@@ -45,6 +45,8 @@ export default function Dashboard() {
         setUploads(items);
       } catch (err) {
         const message = err instanceof Error ? err.message : "Failed to load uploads";
+        // Log for debugging without breaking UX
+        console.error("Failed to fetch uploads", err);
         setError(message);
       } finally {
         setIsLoading(false);
@@ -87,47 +89,58 @@ export default function Dashboard() {
 
         {!isLoading && !error && uploads.length > 0 && (
           <Box overflowX="auto">
-          <Table variant="simple" size="md">
-            <Thead>
-              <Tr>
-                <Th>File name</Th>
-                <Th>Vendor</Th>
-                <Th>Size</Th>
-                <Th>Request status</Th>
-                <Th>Total</Th>
-                <Th>Uploaded</Th>
-                <Th>Action</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {uploads.map((upload) => (
-                <Tr key={upload.id}>
-                  <Td maxW="320px">
-                    <Text noOfLines={1}>{upload.uploadMeta.fileName}</Text>
-                  </Td>
-                  <Td>{upload.vendor ?? "–"}</Td>
-                  <Td>{formatSize(upload.document.fileSize)}</Td>
-                  <Td>
-                    <Badge colorScheme="blue" borderRadius="md" textTransform="capitalize">
-                      {upload.status}
-                    </Badge>
-                  </Td>
-                  <Td>{upload.totalCost ?? "–"}</Td>
-                  <Td>{formatDate(upload.document.uploadedAt)}</Td>
-                  <Td>
-                    <Button
-                      as="a"
-                      href={buildPdfUrl(upload.id)}
-                      target="_blank"
-                      rel="noreferrer"
-                      size="sm"
-                      variant="outline"
-                    >
-                      View
-                    </Button>
-                  </Td>
+            <Table variant="simple" size="md">
+              <Thead>
+                <Tr>
+                  <Th>File name</Th>
+                  <Th>Vendor</Th>
+                  <Th>Commodity group</Th>
+                  <Th>Category</Th>
+                  <Th>Size</Th>
+                  <Th>Request status</Th>
+                  <Th>Total</Th>
+                  <Th>Uploaded</Th>
+                  <Th>Action</Th>
                 </Tr>
-              ))}
+              </Thead>
+              <Tbody>
+                {uploads.map((upload) => {
+                  if (!upload.document) {
+                    console.warn("Upload missing document payload", upload);
+                    return null;
+                  }
+
+                  return (
+                    <Tr key={upload.id}>
+                      <Td maxW="320px">
+                        <Text noOfLines={1}>{upload.document.fileName}</Text>
+                      </Td>
+                      <Td>{upload.vendor ?? "–"}</Td>
+                      <Td>{upload.commodityGroup ?? "–"}</Td>
+                      <Td>{upload.category ?? "–"}</Td>
+                      <Td>{formatSize(upload.document.fileSize)}</Td>
+                      <Td>
+                        <Badge colorScheme="blue" borderRadius="md" textTransform="capitalize">
+                          {upload.status}
+                        </Badge>
+                      </Td>
+                      <Td>{upload.totalCost ?? "–"}</Td>
+                      <Td>{formatDate(upload.document.uploadedAt)}</Td>
+                      <Td>
+                        <Button
+                          as="a"
+                          href={buildPdfUrl(upload.id)}
+                          target="_blank"
+                          rel="noreferrer"
+                          size="sm"
+                          variant="outline"
+                        >
+                          View
+                        </Button>
+                      </Td>
+                    </Tr>
+                  );
+                })}
               </Tbody>
             </Table>
           </Box>

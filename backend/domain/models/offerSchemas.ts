@@ -12,6 +12,7 @@ export const OfferExtractionSchema = z.object({
   requestor: z.string().nullable().optional(),
   vendor: z.string().nullable().optional(),
   commodityGroup: z.nativeEnum(CommodityGroupEnum).nullable().optional(),
+  category: z.string().nullable().optional(),
   description: z.string().nullable().optional(),
   vatId: z.string().nullable().optional(),
   orderLines: z.array(OrderLineSchema).nullable().optional().transform((value) => value ?? []),

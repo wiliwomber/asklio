@@ -8,6 +8,18 @@ import {
 } from "../models/procurementRequest.js";
 import { type OfferExtraction } from "../models/offerSchemas.js";
 import { logError } from "../../utils/logger.js";
+import { COMMODITY_CATEGORIES } from "../models/commodity.js";
+
+function resolveCategory(commodityGroup?: string | null): string | null {
+  if (!commodityGroup) {
+    return null;
+  }
+
+  const match = COMMODITY_CATEGORIES.find(
+    (item) => item.commodityGroup.toLowerCase() === commodityGroup.toLowerCase(),
+  );
+  return match ? match.category : null;
+}
 
 function mapToResponse(document: ProcurementRequest): ProcurementRequestResponse {
   const { document: uploadedDocument, _id, createdAt, updatedAt, ...rest } = document;
@@ -40,6 +52,7 @@ export async function createProcurementRequest(params: {
       requestor: params.extraction.requestor,
       vendor: params.extraction.vendor,
       commodityGroup: params.extraction.commodityGroup,
+      category: params.extraction.category ?? resolveCategory(params.extraction.commodityGroup),
       description: params.extraction.description,
       vatId: params.extraction.vatId,
       orderLines: params.extraction.orderLines ?? [],

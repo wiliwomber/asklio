@@ -21,6 +21,7 @@ export type ProcurementRequest = {
   requestor?: string | null;
   vendor?: string | null;
   commodityGroup?: string | null;
+  category?: string | null;
   description?: string | null;
   vatId?: string | null;
   orderLines: Array<z.infer<typeof OrderLineSchema>>;
