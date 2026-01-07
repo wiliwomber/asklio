@@ -1,7 +1,10 @@
 import { type NextFunction, type Request, type Response } from "express";
-import { getUploadContent, listUploadsWithRequests, storeUpload } from "../../domain/services/uploadService.js";
-import { createProcurementRequest } from "../../domain/services/procurementRequestService.js";
 import { extractProcurementOfferFromBuffer } from "../../domain/services/extractorService.js";
+import {
+  createProcurementRequest,
+  getProcurementUploadContent,
+  listProcurementRequests,
+} from "../../domain/services/procurementRequestService.js";
 import { logError } from "../../utils/logger.js";
 
 export async function uploadPdf(request: Request, response: Response, next: NextFunction) {
@@ -11,29 +14,23 @@ export async function uploadPdf(request: Request, response: Response, next: Next
       return;
     }
 
-    const { insertedId, uploadMeta } = await storeUpload({
-      fileName: request.file.originalname,
-      mimeType: request.file.mimetype,
-      fileSize: request.file.size,
-      data: request.file.buffer,
-    });
-
     const extraction = await extractProcurementOfferFromBuffer(request.file.buffer);
 
-    const procurementRequest = await createProcurementRequest({ uploadId: insertedId, extraction });
+    const procurementRequest = await createProcurementRequest({
+      document: {
+        fileName: request.file.originalname,
+        mimeType: request.file.mimetype,
+        fileSize: request.file.size,
+        data: request.file.buffer,
+        uploadedAt: new Date(),
+      },
+      extraction,
+    });
 
     response.status(200).json({
-      id: insertedId.toString(),
+      id: procurementRequest.id,
       message: "PDF stored successfully",
-      uploadMeta,
-      procurementRequest: {
-        id: procurementRequest._id?.toString() ?? "",
-        uploadId: procurementRequest.uploadId.toString(),
-        status: procurementRequest.status,
-        extraction: procurementRequest.extraction,
-        createdAt: procurementRequest.createdAt.toISOString(),
-        updatedAt: procurementRequest.updatedAt.toISOString(),
-      },
+      procurementRequest,
     });
   } catch (error) {
     logError("Upload handler failed", error, { fileName: request.file?.originalname });
@@ -43,8 +40,8 @@ export async function uploadPdf(request: Request, response: Response, next: Next
 
 export async function listUploadsController(_request: Request, response: Response, next: NextFunction) {
   try {
-    const uploads = await listUploadsWithRequests();
-    response.json(uploads);
+    const requests = await listProcurementRequests();
+    response.json(requests);
   } catch (error) {
     logError("Failed to list uploads", error);
     next(error);
@@ -54,7 +51,7 @@ export async function listUploadsController(_request: Request, response: Respons
 export async function getUploadByIdController(request: Request, response: Response, next: NextFunction) {
   try {
     const { id } = request.params;
-    const upload = await getUploadContent(id);
+    const upload = await getProcurementUploadContent(id);
 
     if (!upload) {
       response.status(404).json({ error: "Upload not found" });

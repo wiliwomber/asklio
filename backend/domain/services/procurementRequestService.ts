@@ -1,40 +1,107 @@
 import { ObjectId } from "mongodb";
 import { getProcurementRequestsCollection } from "../../db/procurementRequestsCollection.js";
-import { type ProcurementRequest, type ProcurementStatus } from "../models/procurementRequest.js";
+import {
+  type ProcurementRequest,
+  type ProcurementRequestResponse,
+  type ProcurementStatus,
+  type DocumentPayload,
+} from "../models/procurementRequest.js";
 import { type OfferExtraction } from "../models/offerSchemas.js";
 import { logError } from "../../utils/logger.js";
 
+function mapToResponse(document: ProcurementRequest): ProcurementRequestResponse {
+  const { document: uploadedDocument, _id, createdAt, updatedAt, ...rest } = document;
+  return {
+    ...rest,
+    createdAt: createdAt.toISOString(),
+    updatedAt: updatedAt.toISOString(),
+    id: _id?.toString() ?? "",
+    document: {
+      fileName: uploadedDocument.fileName,
+      fileSize: uploadedDocument.fileSize,
+      mimeType: uploadedDocument.mimeType,
+      uploadedAt: uploadedDocument.uploadedAt.toISOString(),
+    },
+  };
+}
+
 export async function createProcurementRequest(params: {
-  uploadId: ObjectId;
+  document: DocumentPayload;
   extraction: OfferExtraction;
   status?: ProcurementStatus;
-}): Promise<ProcurementRequest> {
+}): Promise<ProcurementRequestResponse> {
   try {
     const collection = await getProcurementRequestsCollection();
     const now = new Date();
 
     const document: ProcurementRequest = {
-      uploadId: params.uploadId,
       status: params.status ?? "open",
-      extraction: params.extraction,
+      document: params.document,
+      requestor: params.extraction.requestor,
+      vendor: params.extraction.vendor,
+      commodityGroup: params.extraction.commodityGroup,
+      description: params.extraction.description,
+      vatId: params.extraction.vatId,
+      orderLines: params.extraction.orderLines ?? [],
+      totalCost: params.extraction.totalCost,
       createdAt: now,
       updatedAt: now,
     };
 
     const { insertedId } = await collection.insertOne(document);
-    return { ...document, _id: insertedId };
+    return mapToResponse({ ...document, _id: insertedId });
   } catch (error) {
-    logError("Failed to create procurement request", error, { uploadId: params.uploadId.toString() });
+    logError("Failed to create procurement request", error, { fileName: params.document.fileName });
     throw error;
   }
 }
 
-export async function getProcurementRequestByUploadId(uploadId: ObjectId): Promise<ProcurementRequest | null> {
+export async function listProcurementRequests(): Promise<ProcurementRequestResponse[]> {
   try {
     const collection = await getProcurementRequestsCollection();
-    return await collection.findOne({ uploadId });
+    const documents = await collection
+      .find({}, { projection: { "upload.data": 0 } })
+      .sort({ createdAt: -1 })
+      .toArray();
+    return documents.map(mapToResponse);
   } catch (error) {
-    logError("Failed to fetch procurement request by upload id", error, { uploadId: uploadId.toString() });
+    logError("Failed to list procurement requests", error);
     throw error;
   }
+}
+
+export async function getProcurementRequestById(id: string): Promise<ProcurementRequest | null> {
+  if (!ObjectId.isValid(id)) {
+    throw new Error("Invalid procurement request id");
+  }
+
+  try {
+    const collection = await getProcurementRequestsCollection();
+    return await collection.findOne({ _id: new ObjectId(id) });
+  } catch (error) {
+    logError("Failed to fetch procurement request by id", error, { id });
+    throw error;
+  }
+}
+
+export async function getProcurementUploadContent(id: string) {
+  const request = await getProcurementRequestById(id);
+
+  if (!request) {
+    return null;
+  }
+
+  const { document: uploadedDocument } = request;
+  const data =
+    uploadedDocument.data instanceof Buffer
+      ? uploadedDocument.data
+      : uploadedDocument.data && typeof (uploadedDocument.data as { buffer?: unknown }).buffer === "object"
+        ? Buffer.from((uploadedDocument.data as { buffer: ArrayBuffer }).buffer)
+        : Buffer.from(uploadedDocument.data as Uint8Array);
+
+  return {
+    fileName: uploadedDocument.fileName,
+    mimeType: uploadedDocument.mimeType,
+    data,
+  };
 }

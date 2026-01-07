@@ -105,19 +105,19 @@ export default function Dashboard() {
                   <Td maxW="320px">
                     <Text noOfLines={1}>{upload.uploadMeta.fileName}</Text>
                   </Td>
-                  <Td>{upload.extraction.vendor ?? "–"}</Td>
-                  <Td>{formatSize(upload.uploadMeta.fileSize)}</Td>
+                  <Td>{upload.vendor ?? "–"}</Td>
+                  <Td>{formatSize(upload.document.fileSize)}</Td>
                   <Td>
                     <Badge colorScheme="blue" borderRadius="md" textTransform="capitalize">
                       {upload.status}
                     </Badge>
                   </Td>
-                  <Td>{upload.extraction.totalCost ?? "–"}</Td>
-                  <Td>{formatDate(upload.uploadMeta.uploadedAt)}</Td>
+                  <Td>{upload.totalCost ?? "–"}</Td>
+                  <Td>{formatDate(upload.document.uploadedAt)}</Td>
                   <Td>
                     <Button
                       as="a"
-                      href={buildPdfUrl(upload.uploadId)}
+                      href={buildPdfUrl(upload.id)}
                       target="_blank"
                       rel="noreferrer"
                       size="sm"

@@ -153,12 +153,14 @@ export default function PdfUploadForm() {
               <Text fontWeight="bold" color="blue.700">
                 {result.message}
               </Text>
-              <Text color="gray.700">File name: {result.uploadMeta.fileName}</Text>
-              <Text color="gray.700">File size: {(result.uploadMeta.fileSize / (1024 * 1024)).toFixed(2)} MB</Text>
+              <Text color="gray.700">File name: {result.procurementRequest.document.fileName}</Text>
+              <Text color="gray.700">
+                File size: {(result.procurementRequest.document.fileSize / (1024 * 1024)).toFixed(2)} MB
+              </Text>
               <Text color="gray.700">Status: {result.procurementRequest.status}</Text>
               <Text color="gray.700">
-                Vendor: {result.procurementRequest.extraction.vendor ?? "n/a"} | Total:{" "}
-                {result.procurementRequest.extraction.totalCost ?? "n/a"}
+                Vendor: {result.procurementRequest.vendor ?? "n/a"} | Total:{" "}
+                {result.procurementRequest.totalCost ?? "n/a"}
               </Text>
             </Box>
           )}

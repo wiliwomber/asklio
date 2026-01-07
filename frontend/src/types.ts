@@ -19,14 +19,20 @@ export type OfferExtraction = {
 
 export type ProcurementRequest = {
   id: string;
-  uploadId: string;
   status: ProcurementStatus;
-  extraction: OfferExtraction;
+  requestor?: string | null;
+  vendor?: string | null;
+  commodityGroup?: string | null;
+  description?: string | null;
+  vatId?: string | null;
+  orderLines: OrderLine[];
+  totalCost?: number | null;
   createdAt: string;
   updatedAt: string;
-  uploadMeta: {
+  document: {
     fileName: string;
     fileSize: number;
+    mimeType: string;
     uploadedAt: string;
   };
 };
@@ -34,7 +40,10 @@ export type ProcurementRequest = {
 export type UploadResponse = {
   id: string;
   message: string;
-  uploadMeta: ProcurementRequest["uploadMeta"];
+  procurementRequest: ProcurementRequest;
+};
+
+export type UploadSummary = ProcurementRequest;
   procurementRequest: ProcurementRequest;
 };
 
