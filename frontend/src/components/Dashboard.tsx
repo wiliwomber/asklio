@@ -87,44 +87,47 @@ export default function Dashboard() {
 
         {!isLoading && !error && uploads.length > 0 && (
           <Box overflowX="auto">
-            <Table variant="simple" size="md">
-              <Thead>
-                <Tr>
-                  <Th>File name</Th>
-                  <Th>Vendor</Th>
-                  <Th>Size</Th>
-                  <Th>Request status</Th>
-                  <Th>Total</Th>
-                  <Th>Uploaded</Th>
-                  <Th>Action</Th>
+          <Table variant="simple" size="md">
+            <Thead>
+              <Tr>
+                <Th>File name</Th>
+                <Th>Vendor</Th>
+                <Th>Size</Th>
+                <Th>Request status</Th>
+                <Th>Total</Th>
+                <Th>Uploaded</Th>
+                <Th>Action</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {uploads.map((upload) => (
+                <Tr key={upload.id}>
+                  <Td maxW="320px">
+                    <Text noOfLines={1}>{upload.uploadMeta.fileName}</Text>
+                  </Td>
+                  <Td>{upload.extraction.vendor ?? "–"}</Td>
+                  <Td>{formatSize(upload.uploadMeta.fileSize)}</Td>
+                  <Td>
+                    <Badge colorScheme="blue" borderRadius="md" textTransform="capitalize">
+                      {upload.status}
+                    </Badge>
+                  </Td>
+                  <Td>{upload.extraction.totalCost ?? "–"}</Td>
+                  <Td>{formatDate(upload.uploadMeta.uploadedAt)}</Td>
+                  <Td>
+                    <Button
+                      as="a"
+                      href={buildPdfUrl(upload.uploadId)}
+                      target="_blank"
+                      rel="noreferrer"
+                      size="sm"
+                      variant="outline"
+                    >
+                      View
+                    </Button>
+                  </Td>
                 </Tr>
-              </Thead>
-              <Tbody>
-                {uploads.map((upload) => (
-                  <Tr key={upload.id}>
-                    <Td maxW="320px">
-                      <Text noOfLines={1}>{upload.fileName}</Text>
-                    </Td>
-                    <Td>{upload.procurementRequest?.extraction.vendor ?? "–"}</Td>
-                    <Td>{formatSize(upload.fileSize)}</Td>
-                    <Td>
-                      {upload.procurementRequest ? (
-                        <Badge colorScheme="blue" borderRadius="md" textTransform="capitalize">
-                          {upload.procurementRequest.status}
-                        </Badge>
-                      ) : (
-                        <Badge colorScheme="gray">Pending</Badge>
-                      )}
-                    </Td>
-                    <Td>{upload.procurementRequest?.extraction.totalCost ?? "–"}</Td>
-                    <Td>{formatDate(upload.uploadedAt)}</Td>
-                    <Td>
-                      <Button as="a" href={buildPdfUrl(upload.id)} target="_blank" rel="noreferrer" size="sm" variant="outline">
-                        View
-                      </Button>
-                    </Td>
-                  </Tr>
-                ))}
+              ))}
               </Tbody>
             </Table>
           </Box>

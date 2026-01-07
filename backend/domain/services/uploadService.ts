@@ -1,8 +1,9 @@
 import { Binary, ObjectId } from "mongodb";
 import { getUploadsCollection } from "../../db/uploadsCollection.js";
-import { type StoredUpload, type UploadContent, type UploadSummary } from "../models/upload.js";
-import { type ProcurementRequest, type ProcurementStatus } from "../models/procurementRequest.js";
-import { type OfferExtraction } from "../models/offerSchemas.js";
+import { type StoredUpload } from "../models/upload.js";
+import { type ProcurementRequest } from "../models/procurementRequest.js";
+import { getProcurementRequestByUploadId } from "./procurementRequestService.js";
+import { logError } from "../../utils/logger.js";
 
 function toBuffer(data: StoredUpload["data"]): Buffer | null {
   if (data instanceof Buffer) {
@@ -24,117 +25,98 @@ function toBuffer(data: StoredUpload["data"]): Buffer | null {
   return null;
 }
 
-function mapToSummary(document: StoredUpload): UploadSummary {
-  return {
-    id: document._id?.toString() ?? "",
-    fileName: document.fileName,
-    fileSize: document.fileSize,
-    uploadedAt: document.uploadedAt.toISOString(),
-  };
-}
-
-type ProcurementRequestEmbedded = {
+export type UploadWithRequest = ProcurementRequest & {
   id: string;
-  status: ProcurementStatus;
-  extraction: OfferExtraction;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type UploadWithRequest = UploadSummary & {
-  procurementRequest?: ProcurementRequestEmbedded;
+  uploadMeta: {
+    fileName: string;
+    fileSize: number;
+    uploadedAt: string;
+  };
 };
 
 export async function storeUpload(params: { fileName: string; mimeType: string; fileSize: number; data: Buffer }) {
-  const uploads = await getUploadsCollection();
+  try {
+    const uploads = await getUploadsCollection();
 
-  const document: StoredUpload = {
-    fileName: params.fileName,
-    fileSize: params.fileSize,
-    mimeType: params.mimeType,
-    data: params.data,
-    uploadedAt: new Date(),
-  };
+    const document: StoredUpload = {
+      fileName: params.fileName,
+      fileSize: params.fileSize,
+      mimeType: params.mimeType,
+      data: params.data,
+      uploadedAt: new Date(),
+    };
 
-  const { insertedId } = await uploads.insertOne(document);
+    const { insertedId } = await uploads.insertOne(document);
 
-  return {
-    insertedId,
-    summary: mapToSummary({ ...document, _id: insertedId }),
-  };
-}
-
-export async function listUploads(): Promise<UploadSummary[]> {
-  const uploads = await getUploadsCollection();
-  const documents = await uploads
-    .find({}, { projection: { data: 0 } })
-    .sort({ uploadedAt: -1 })
-    .toArray();
-
-  return documents.map(mapToSummary);
+    return {
+      insertedId,
+      uploadMeta: {
+        fileName: document.fileName,
+        fileSize: document.fileSize,
+        uploadedAt: document.uploadedAt.toISOString(),
+      },
+    };
+  } catch (error) {
+    logError("Failed to store upload", error, { fileName: params.fileName });
+    throw error;
+  }
 }
 
 export async function listUploadsWithRequests(): Promise<UploadWithRequest[]> {
-  const uploads = await getUploadsCollection();
+  try {
+    const uploads = await getUploadsCollection();
+    const documents = await uploads.find({}, { projection: { data: 0 } }).sort({ uploadedAt: -1 }).toArray();
 
-  const documents = await uploads
-    .aggregate<
-      StoredUpload & {
-        procurementRequest?: ProcurementRequest;
-      }
-    >([
-      {
-        $lookup: {
-          from: "procurementRequests",
-          localField: "_id",
-          foreignField: "uploadId",
-          as: "procurementRequest",
-        },
-      },
-      { $unwind: { path: "$procurementRequest", preserveNullAndEmptyArrays: true } },
-      { $project: { data: 0 } },
-      { $sort: { uploadedAt: -1 } },
-    ])
-    .toArray();
+    const results: UploadWithRequest[] = [];
 
-  return documents.map((document) => {
-    const summary = mapToSummary(document);
-    const request = document.procurementRequest;
+    for (const document of documents) {
+      const request = await getProcurementRequestByUploadId(document._id!);
 
-    const procurementRequest = request
-      ? {
+      if (request) {
+        results.push({
+          ...request,
           id: request._id?.toString() ?? "",
-          status: request.status,
-          extraction: request.extraction,
-          createdAt: request.createdAt.toISOString(),
-          updatedAt: request.updatedAt.toISOString(),
-        }
-      : undefined;
+          uploadMeta: {
+            fileName: document.fileName,
+            fileSize: document.fileSize,
+            uploadedAt: document.uploadedAt.toISOString(),
+          },
+        });
+      }
+    }
 
-    return { ...summary, procurementRequest };
-  });
+    return results;
+  } catch (error) {
+    logError("Failed to list uploads with procurement requests", error);
+    throw error;
+  }
 }
 
-export async function getUploadContent(id: string): Promise<UploadContent | null> {
+export async function getUploadContent(id: string) {
   if (!ObjectId.isValid(id)) {
     throw new Error("Invalid upload id");
   }
 
-  const uploads = await getUploadsCollection();
-  const document = await uploads.findOne({ _id: new ObjectId(id) });
+  try {
+    const uploads = await getUploadsCollection();
+    const document = await uploads.findOne({ _id: new ObjectId(id) });
 
-  if (!document) {
-    return null;
+    if (!document) {
+      return null;
+    }
+
+    const buffer = toBuffer(document.data);
+    if (!buffer) {
+      throw new Error("Stored file is not readable");
+    }
+
+    return {
+      fileName: document.fileName,
+      mimeType: document.mimeType || "application/pdf",
+      data: buffer,
+    };
+  } catch (error) {
+    logError("Failed to fetch upload content", error, { uploadId: id });
+    throw error;
   }
-
-  const buffer = toBuffer(document.data);
-  if (!buffer) {
-    throw new Error("Stored file is not readable");
-  }
-
-  return {
-    fileName: document.fileName,
-    mimeType: document.mimeType || "application/pdf",
-    data: buffer,
-  };
 }

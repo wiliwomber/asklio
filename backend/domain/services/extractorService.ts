@@ -1,8 +1,9 @@
 import { ChatOpenAI } from "@langchain/openai";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
-import { loadPdfText, loadPdfTextFromBuffer } from "./pdfLoader.ts";
-import { OfferExtractionSchema, type OfferExtraction } from "../domain/models/offerSchemas.js";
-import { EXTRACTION_PROMPT } from "./prompts.ts";
+import { loadPdfText, loadPdfTextFromBuffer } from "./pdfLoaderService.ts";
+import { OfferExtractionSchema, type OfferExtraction } from "../models/offerSchemas.js";
+import { EXTRACTION_PROMPT } from "../../parser/prompts.ts";
+import { logError } from "../../utils/logger.js";
 
 const OPENAI_MODEL = "gpt-4.1-mini";
 const OPENAI_TEMPERATURE = 0;
@@ -62,11 +63,21 @@ async function extractFromText(offerText: string): Promise<OfferExtraction> {
 }
 
 export async function extractProcurementOfferFromPath(pdfPath: string): Promise<OfferExtraction> {
-  const offerText = await loadPdfText(pdfPath);
-  return extractFromText(offerText);
+  try {
+    const offerText = await loadPdfText(pdfPath);
+    return await extractFromText(offerText);
+  } catch (error) {
+    logError("Failed to extract procurement offer from path", error, { pdfPath });
+    throw error;
+  }
 }
 
 export async function extractProcurementOfferFromBuffer(buffer: Buffer): Promise<OfferExtraction> {
-  const offerText = await loadPdfTextFromBuffer(buffer);
-  return extractFromText(offerText);
+  try {
+    const offerText = await loadPdfTextFromBuffer(buffer);
+    return await extractFromText(offerText);
+  } catch (error) {
+    logError("Failed to extract procurement offer from buffer", error);
+    throw error;
+  }
 }

@@ -1,7 +1,8 @@
 import { type NextFunction, type Request, type Response } from "express";
 import { getUploadContent, listUploadsWithRequests, storeUpload } from "../../domain/services/uploadService.js";
 import { createProcurementRequest } from "../../domain/services/procurementRequestService.js";
-import { extractProcurementOfferFromBuffer } from "../../parser/extractor.js";
+import { extractProcurementOfferFromBuffer } from "../../domain/services/extractorService.js";
+import { logError } from "../../utils/logger.js";
 
 export async function uploadPdf(request: Request, response: Response, next: NextFunction) {
   try {
@@ -10,7 +11,7 @@ export async function uploadPdf(request: Request, response: Response, next: Next
       return;
     }
 
-    const { insertedId, summary } = await storeUpload({
+    const { insertedId, uploadMeta } = await storeUpload({
       fileName: request.file.originalname,
       mimeType: request.file.mimetype,
       fileSize: request.file.size,
@@ -24,12 +25,18 @@ export async function uploadPdf(request: Request, response: Response, next: Next
     response.status(200).json({
       id: insertedId.toString(),
       message: "PDF stored successfully",
-      fileName: summary.fileName,
-      fileSize: summary.fileSize,
-      uploadedAt: summary.uploadedAt,
-      procurementRequest,
+      uploadMeta,
+      procurementRequest: {
+        id: procurementRequest._id?.toString() ?? "",
+        uploadId: procurementRequest.uploadId.toString(),
+        status: procurementRequest.status,
+        extraction: procurementRequest.extraction,
+        createdAt: procurementRequest.createdAt.toISOString(),
+        updatedAt: procurementRequest.updatedAt.toISOString(),
+      },
     });
   } catch (error) {
+    logError("Upload handler failed", error, { fileName: request.file?.originalname });
     next(error);
   }
 }
@@ -39,6 +46,7 @@ export async function listUploadsController(_request: Request, response: Respons
     const uploads = await listUploadsWithRequests();
     response.json(uploads);
   } catch (error) {
+    logError("Failed to list uploads", error);
     next(error);
   }
 }
@@ -57,6 +65,7 @@ export async function getUploadByIdController(request: Request, response: Respon
     response.setHeader("Content-Disposition", `inline; filename="${encodeURIComponent(upload.fileName)}"`);
     response.send(upload.data);
   } catch (error) {
+    logError("Failed to fetch upload by id", error, { uploadId: request.params.id });
     next(error);
   }
 }

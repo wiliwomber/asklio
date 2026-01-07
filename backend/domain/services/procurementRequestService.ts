@@ -1,46 +1,40 @@
 import { ObjectId } from "mongodb";
 import { getProcurementRequestsCollection } from "../../db/procurementRequestsCollection.js";
-import {
-  type ProcurementRequest,
-  type ProcurementRequestSummary,
-  type ProcurementStatus,
-} from "../models/procurementRequest.js";
+import { type ProcurementRequest, type ProcurementStatus } from "../models/procurementRequest.js";
 import { type OfferExtraction } from "../models/offerSchemas.js";
-
-function mapToSummary(document: ProcurementRequest): ProcurementRequestSummary {
-  return {
-    id: document._id?.toString() ?? "",
-    uploadId: document.uploadId.toString(),
-    status: document.status,
-    extraction: document.extraction,
-    createdAt: document.createdAt.toISOString(),
-    updatedAt: document.updatedAt.toISOString(),
-  };
-}
+import { logError } from "../../utils/logger.js";
 
 export async function createProcurementRequest(params: {
   uploadId: ObjectId;
   extraction: OfferExtraction;
   status?: ProcurementStatus;
-}): Promise<ProcurementRequestSummary> {
-  const collection = await getProcurementRequestsCollection();
-  const now = new Date();
+}): Promise<ProcurementRequest> {
+  try {
+    const collection = await getProcurementRequestsCollection();
+    const now = new Date();
 
-  const document: ProcurementRequest = {
-    uploadId: params.uploadId,
-    status: params.status ?? "open",
-    extraction: params.extraction,
-    createdAt: now,
-    updatedAt: now,
-  };
+    const document: ProcurementRequest = {
+      uploadId: params.uploadId,
+      status: params.status ?? "open",
+      extraction: params.extraction,
+      createdAt: now,
+      updatedAt: now,
+    };
 
-  const { insertedId } = await collection.insertOne(document);
-  return mapToSummary({ ...document, _id: insertedId });
+    const { insertedId } = await collection.insertOne(document);
+    return { ...document, _id: insertedId };
+  } catch (error) {
+    logError("Failed to create procurement request", error, { uploadId: params.uploadId.toString() });
+    throw error;
+  }
 }
 
-export async function findProcurementRequestByUploadId(uploadId: ObjectId): Promise<ProcurementRequestSummary | null> {
-  const collection = await getProcurementRequestsCollection();
-  const document = await collection.findOne({ uploadId });
-
-  return document ? mapToSummary(document) : null;
+export async function getProcurementRequestByUploadId(uploadId: ObjectId): Promise<ProcurementRequest | null> {
+  try {
+    const collection = await getProcurementRequestsCollection();
+    return await collection.findOne({ uploadId });
+  } catch (error) {
+    logError("Failed to fetch procurement request by upload id", error, { uploadId: uploadId.toString() });
+    throw error;
+  }
 }

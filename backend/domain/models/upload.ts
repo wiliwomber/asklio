@@ -8,16 +8,3 @@ export type StoredUpload = {
   data: Buffer | Binary | Uint8Array;
   uploadedAt: Date;
 };
-
-export type UploadSummary = {
-  id: string;
-  fileName: string;
-  fileSize: number;
-  uploadedAt: string;
-};
-
-export type UploadContent = {
-  fileName: string;
-  mimeType: string;
-  data: Buffer;
-};

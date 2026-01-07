@@ -4,6 +4,7 @@ import type { Server } from "node:http";
 import multer from "multer";
 import { createUploadRouter } from "./api/routes/uploadRoutes.js";
 import { getMongoClient } from "./db/client.js";
+import { logError } from "./utils/logger.js";
 
 type ErrorResponse = {
   error: string;
@@ -17,10 +18,12 @@ function errorHandler(error: unknown, _request: Request, response: Response<Erro
   }
 
   if (error instanceof Error) {
+    logError("Request handler error", error);
     response.status(400).json({ error: error.message });
     return;
   }
 
+  logError("Unexpected request handler error", error);
   response.status(500).json({ error: "Unexpected server error" });
 }
 

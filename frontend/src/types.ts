@@ -1,20 +1,20 @@
 export type ProcurementStatus = "open" | "inprogress" | "closed";
 
 export type OrderLine = {
-  product: string;
-  unitPrice: number;
-  quantity: number;
-  totalCost: number;
+  product?: string | null;
+  unitPrice?: number | null;
+  quantity?: number | null;
+  totalCost?: number | null;
 };
 
 export type OfferExtraction = {
-  requestor: string | null;
-  vendor: string;
-  commodityGroup: string;
-  description: string;
-  vatId: string;
+  requestor?: string | null;
+  vendor?: string | null;
+  commodityGroup?: string | null;
+  description?: string | null;
+  vatId?: string | null;
   orderLines: OrderLine[];
-  totalCost: number;
+  totalCost?: number | null;
 };
 
 export type ProcurementRequest = {
@@ -24,21 +24,18 @@ export type ProcurementRequest = {
   extraction: OfferExtraction;
   createdAt: string;
   updatedAt: string;
-};
-
-export type UploadSummary = {
-  id: string;
-  fileName: string;
-  fileSize: number;
-  uploadedAt: string;
-  procurementRequest?: ProcurementRequest;
+  uploadMeta: {
+    fileName: string;
+    fileSize: number;
+    uploadedAt: string;
+  };
 };
 
 export type UploadResponse = {
   id: string;
   message: string;
-  fileName: string;
-  fileSize: number;
-  uploadedAt: string;
+  uploadMeta: ProcurementRequest["uploadMeta"];
   procurementRequest: ProcurementRequest;
 };
+
+export type UploadSummary = ProcurementRequest;
