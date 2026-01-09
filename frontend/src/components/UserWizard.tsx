@@ -6,6 +6,7 @@ import {
   Button,
   Card,
   CardBody,
+  Divider,
   FormControl,
   FormLabel,
   HStack,
@@ -312,36 +313,88 @@ export default function UserWizard({ initialRequest = null, onClose, onCloseWith
 
                   <Stack spacing={3}>
                     {(request.orderLines ?? []).map((line, index) => (
-                      <SimpleGrid key={index} columns={[1, 2, 4]} spacing={3}>
-                        <Input
-                          title="Product"
-                          placeholder="Product"
-                          value={line.product ?? ""}
-                          onChange={(e) => handleOrderLineChange(index, "product", e.target.value)}
+                      <SimpleGrid
+                        key={index}
+                        columns={3}
+                        spacing={3}
+                        pb={4}
+                      >
+                        <FormControl
+                          isRequired
                           isInvalid={!line.product}
-                        />
-                        <NumberInput value={line.unitPrice ?? undefined} precision={2} min={0}>
-                          <NumberInputField
-                            placeholder="Unit price"
-                            onChange={(e) => handleOrderLineChange(index, "unitPrice", e.target.value)}
+                          gridColumn="1 / -1"
+                        >
+                          <FormLabel>Product</FormLabel>
+                          <Input
+                            placeholder="Product"
+                            value={line.product ?? ""}
+                            onChange={(e) =>
+                              handleOrderLineChange(index, "product", e.target.value)
+                            }
                           />
-                        </NumberInput>
-                        <NumberInput value={line.quantity ?? undefined} precision={0} min={0}>
-                          <NumberInputField
-                            placeholder="Qty"
-                            onChange={(e) => handleOrderLineChange(index, "quantity", e.target.value)}
-                          />
-                        </NumberInput>
-                        <NumberInput value={line.totalCost ?? undefined} precision={2} min={0}>
-                          <NumberInputField
-                            placeholder="Total"
-                            onChange={(e) => handleOrderLineChange(index, "totalCost", e.target.value)}
-                          />
-                        </NumberInput>
+                        </FormControl>
+
+                        <FormControl
+                          isRequired
+                          isInvalid={line.unitPrice === null || line.unitPrice === undefined}
+                        >
+                          <FormLabel>Unit price</FormLabel>
+                          <NumberInput
+                            value={line.unitPrice ?? undefined}
+                            precision={2}
+                            min={0}
+                          >
+                            <NumberInputField
+                              placeholder="Unit price"
+                              onChange={(e) =>
+                                handleOrderLineChange(index, "unitPrice", e.target.value)
+                              }
+                            />
+                          </NumberInput>
+                        </FormControl>
+
+                        <FormControl
+                          isRequired
+                          isInvalid={line.quantity === null || line.quantity === undefined}
+                        >
+                          <FormLabel>Quantity</FormLabel>
+                          <NumberInput
+                            value={line.quantity ?? undefined}
+                            precision={0}
+                            min={0}
+                          >
+                            <NumberInputField
+                              placeholder="Qty"
+                              onChange={(e) =>
+                                handleOrderLineChange(index, "quantity", e.target.value)
+                              }
+                            />
+                          </NumberInput>
+                        </FormControl>
+
+                        {/* Total: 1/3 width */}
+                        <FormControl
+                          isRequired
+                          isInvalid={line.totalCost === null || line.totalCost === undefined}
+                        >
+                          <FormLabel>Total</FormLabel>
+                          <NumberInput
+                            value={line.totalCost ?? undefined}
+                            precision={2}
+                            min={0}
+                          >
+                            <NumberInputField
+                              placeholder="Total"
+                              onChange={(e) =>
+                                handleOrderLineChange(index, "totalCost", e.target.value)
+                              }
+                            />
+                          </NumberInput>
+                        </FormControl>
                       </SimpleGrid>
                     ))}
-
                   </Stack>
+
 
                   <HStack spacing={3} pt={2}>
                     <Button type="submit" colorScheme="purple" isLoading={isSaving} isDisabled={!isFormValid}>
