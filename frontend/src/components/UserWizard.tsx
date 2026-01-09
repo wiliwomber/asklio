@@ -159,7 +159,7 @@ export default function UserWizard({ initialRequest = null, onClose, onCloseWith
       backdropFilter="blur(8px)"
     >
       <CardBody>
-        <Stack spacing={6} align="center">
+        <Stack spacing={6} align="center" justifyContent="center">
           <Box w="100%" maxW="1200px">
             <HStack justify="space-between" align="center">
               <VStack align="flex-start" spacing={1}>
@@ -188,24 +188,30 @@ export default function UserWizard({ initialRequest = null, onClose, onCloseWith
           )}
 
           {view === "upload" && (
-            <Stack spacing={4} w="100%" maxW="600px" minH={"400px"} align={"center"}>
-              {selectedFile && <Text color="gray.200">{selectedFile.name}</Text>}
-              {!selectedFile && <Text color="gray.200"><Text color="gray.600">No file selected.</Text></Text>}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="application/pdf"
-                onChange={handleFileChange}
-                style={{ display: "none" }}
-              />
-              <HStack spacing={3} align="flex-start">
-                <Button variant={"outline"} colorScheme="purple" onClick={() => fileInputRef.current?.click()}>
-                  Upload new document
-                </Button>
-                <Button colorScheme="purple" onClick={startUpload} isDisabled={!selectedFile}>
-                  Upload
-                </Button>
-              </HStack>
+            <Stack spacing={4} w="100%" maxW="600px" align={"center"} py="150px">
+              {selectedFile &&
+                <VStack>
+                  <Text color="gray.600">{selectedFile.name}</Text>
+                  <Button colorScheme="purple" onClick={startUpload} isDisabled={!selectedFile}>
+                    Upload
+                  </Button>
+                </VStack>}
+
+              {!selectedFile &&
+                <VStack>
+                  <Text color="gray.600">No file selected.</Text>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="application/pdf"
+                    onChange={handleFileChange}
+                    style={{ display: "none" }}
+                  />
+                  <Button variant={"outline"} colorScheme="purple" onClick={() => fileInputRef.current?.click()}>
+                    Upload new document
+                  </Button>
+                </VStack>
+              }
             </Stack>
           )}
 
@@ -368,6 +374,6 @@ export default function UserWizard({ initialRequest = null, onClose, onCloseWith
           )}
         </Stack>
       </CardBody>
-    </Card>
+    </Card >
   );
 }
