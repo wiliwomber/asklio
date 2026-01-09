@@ -99,7 +99,7 @@ export function RequestTables({ pending, other, onUploadNew, onEdit, onSubmit }:
                         <Td>{formatDate(req.createdAt)}</Td>
                         <Td>
                           <HStack spacing={2}>
-                            <Button as="a" href={buildPdfUrl(req.id)} target="_blank" rel="noreferrer" size="xs" variant="outline" textColor={"white"}>
+                            <Button as="a" href={buildPdfUrl(req.id)} target="_blank" rel="noreferrer" size="xs" >
                               View document
                             </Button>
                             <Button size="xs" onClick={() => onEdit(req)}>
@@ -155,7 +155,7 @@ export function RequestTables({ pending, other, onUploadNew, onEdit, onSubmit }:
                       </Td>
                       <Td>{formatDate(req.createdAt)}</Td>
                       <Td>
-                        <Button as="a" href={buildPdfUrl(req.id)} target="_blank" rel="noreferrer" size="xs" variant="outline" >
+                        <Button as="a" href={buildPdfUrl(req.id)} target="_blank" rel="noreferrer" size="xs"  >
                           View document
                         </Button>
                       </Td>

@@ -14,6 +14,7 @@ import {
   NumberInputField,
   Select,
   SimpleGrid,
+  Spacer,
   Spinner,
   Stack,
   Text,
@@ -158,24 +159,26 @@ export default function UserWizard({ initialRequest = null, onClose, onCloseWith
       backdropFilter="blur(8px)"
     >
       <CardBody>
-        <Stack spacing={6}>
-          <HStack justify="space-between" align="center">
-            <VStack align="flex-start" spacing={1}>
-              <Text fontSize="lg" fontWeight="bold" color="white">
-                Request wizard
-              </Text>
-              <Text color="gray.400">
-                {view === "upload" && "Upload a PDF for automated processing."}
-                {view === "uploading" && "Processing your PDF..."}
-                {view === "review" && "Review and edit extracted fields."}
-              </Text>
-            </VStack>
-            <HStack>
-              <Button variant="outline" colorScheme="purple" size="sm" onClick={onCloseWithoutRefresh}>
-                Cancel
-              </Button>
+        <Stack spacing={6} align="center">
+          <Box w="100%" maxW="1200px">
+            <HStack justify="space-between" align="center">
+              <VStack align="flex-start" spacing={1}>
+                <Text fontSize="lg" fontWeight="bold" color="black">
+                  Procurement request wizard
+                </Text>
+                <Text color="gray.600">
+                  {view === "upload" && "Upload a PDF for automated processing."}
+                  {view === "uploading" && "Processing your PDF..."}
+                  {view === "review" && "Review and edit extracted fields."}
+                </Text>
+              </VStack>
+              <HStack>
+                <Button variant="outline" colorScheme="purple" size="sm" onClick={onCloseWithoutRefresh}>
+                  Cancel
+                </Button>
+              </HStack>
             </HStack>
-          </HStack>
+          </Box>
 
           {error && (
             <Alert status="error" borderRadius="md">
@@ -185,8 +188,9 @@ export default function UserWizard({ initialRequest = null, onClose, onCloseWith
           )}
 
           {view === "upload" && (
-            <Stack spacing={4}>
-              <Text color="gray.300">Upload a new request PDF for automated extraction.</Text>
+            <Stack spacing={4} w="100%" maxW="600px" minH={"400px"} >
+              {selectedFile && <Text color="gray.200">{selectedFile.name}</Text>}
+              {!selectedFile && <Text color="gray.200"><Text color="gray.600">No file selected.</Text></Text>}
               <input
                 ref={fileInputRef}
                 type="file"
@@ -194,18 +198,12 @@ export default function UserWizard({ initialRequest = null, onClose, onCloseWith
                 onChange={handleFileChange}
                 style={{ display: "none" }}
               />
-              <HStack spacing={3}>
-                <Button colorScheme="purple" onClick={() => fileInputRef.current?.click()}>
+              <HStack spacing={3} align="flex-start">
+                <Button variant={"outline"} colorScheme="purple" onClick={() => fileInputRef.current?.click()}>
                   Upload new document
                 </Button>
-                {selectedFile && <Text color="gray.200">{selectedFile.name}</Text>}
-              </HStack>
-              <HStack spacing={3}>
-                <Button colorScheme="blue" onClick={startUpload} isDisabled={!selectedFile}>
+                <Button colorScheme="purple" onClick={startUpload} isDisabled={!selectedFile}>
                   Upload
-                </Button>
-                <Button variant="ghost" onClick={onCloseWithoutRefresh}>
-                  Cancel
                 </Button>
               </HStack>
             </Stack>
@@ -222,7 +220,14 @@ export default function UserWizard({ initialRequest = null, onClose, onCloseWith
           )}
 
           {view === "review" && request && (
-            <SimpleGrid columns={[1, 2]} spacing={6} alignItems="stretch" templateColumns={{ base: "1fr", lg: "1fr 2fr" }}>
+            <SimpleGrid
+              columns={[1, 2]}
+              spacing={6}
+              alignItems="stretch"
+              templateColumns={{ base: "1fr", lg: "1fr 2fr" }}
+              w="100%"
+              maxW="1200px"
+            >
               <Box as="form" onSubmit={handleSubmit} bg={panelBg} p={6} borderRadius="lg" border="1px solid" borderColor="whiteAlpha.200">
                 <Stack spacing={4}>
                   <SimpleGrid columns={[1, 2]} spacing={4}>
@@ -289,13 +294,21 @@ export default function UserWizard({ initialRequest = null, onClose, onCloseWith
                     <Textarea value={request.description ?? ""} onChange={handleFieldChange("description")} />
                   </FormControl>
 
-                  <Text fontWeight="semibold">
-                    Order lines
-                  </Text>
+                  <HStack spacing={3}>
+                    <Text fontWeight="semibold">
+                      Order lines
+                    </Text>
+                    <Spacer></Spacer>
+                    <Button size="sm" onClick={addOrderLine} variant={"outline"} >
+                      Add order line
+                    </Button>
+                  </HStack>
+
                   <Stack spacing={3}>
                     {(request.orderLines ?? []).map((line, index) => (
                       <SimpleGrid key={index} columns={[1, 2, 4]} spacing={3}>
                         <Input
+                          title="Product"
                           placeholder="Product"
                           value={line.product ?? ""}
                           onChange={(e) => handleOrderLineChange(index, "product", e.target.value)}
@@ -321,9 +334,7 @@ export default function UserWizard({ initialRequest = null, onClose, onCloseWith
                         </NumberInput>
                       </SimpleGrid>
                     ))}
-                    <Button size="sm" onClick={addOrderLine}>
-                      Add line
-                    </Button>
+
                   </Stack>
 
                   <HStack spacing={3} pt={2}>

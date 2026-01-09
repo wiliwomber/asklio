@@ -157,12 +157,17 @@ export async function getProcurementUploadContent(id: string) {
   }
 
   const { document: uploadedDocument } = request;
+  if (!uploadedDocument.data) {
+    throw new Error("No document data stored for this request");
+  }
   const data =
     uploadedDocument.data instanceof Buffer
       ? uploadedDocument.data
       : uploadedDocument.data && typeof (uploadedDocument.data as { buffer?: unknown }).buffer === "object"
         ? Buffer.from((uploadedDocument.data as { buffer: ArrayBuffer }).buffer)
-        : Buffer.from(uploadedDocument.data as Uint8Array);
+        : uploadedDocument.data instanceof Uint8Array
+          ? Buffer.from(uploadedDocument.data)
+          : Buffer.from(uploadedDocument.data as ArrayBuffer);
 
   return {
     fileName: uploadedDocument.fileName,
@@ -186,32 +191,59 @@ export async function updateProcurementRequest(
 
   try {
     const collection = await getProcurementRequestsCollection();
-    const updateDoc = {
-      ...updates,
-      commodityGroup: normalizeCommodityGroup(updates.commodityGroup) ?? updates.commodityGroup ?? undefined,
-      category: updates.category ?? resolveCategory(updates.commodityGroup),
+    const existing = await collection.findOne({ _id: new ObjectId(id) });
+    if (!existing) return null;
+
+    const normalizedGroup = normalizeCommodityGroup(updates.commodityGroup ?? existing.commodityGroup);
+    const derivedCategory =
+      updates.category ??
+      resolveCategory(updates.commodityGroup ?? existing.commodityGroup) ??
+      existing.category;
+
+    const merged: ProcurementRequest = {
+      ...existing,
+      requestor: updates.requestor ?? existing.requestor,
+      requestorDepartment: updates.requestorDepartment ?? existing.requestorDepartment,
+      vendor: updates.vendor ?? existing.vendor,
+      commodityGroup: normalizedGroup,
+      category: derivedCategory,
+      description: updates.description ?? existing.description,
+      vatId: updates.vatId ?? existing.vatId,
+      orderLines: updates.orderLines ?? existing.orderLines,
+      totalCost: updates.totalCost ?? existing.totalCost,
+      status: updates.status ?? existing.status,
       updatedAt: new Date(),
+      document: {
+        ...existing.document,
+        uploadedAt:
+          existing.document.uploadedAt instanceof Date
+            ? existing.document.uploadedAt
+            : new Date(existing.document.uploadedAt),
+      },
+      createdAt: existing.createdAt instanceof Date ? existing.createdAt : new Date(existing.createdAt),
     };
 
-    if (updates.status === "open") {
-      const existing = await collection.findOne({ _id: new ObjectId(id) });
-      if (!existing) return null;
-      const merged: ProcurementRequest = {
-        ...existing,
-        ...updateDoc,
-        document: {
-          ...existing.document,
-          uploadedAt: existing.document.uploadedAt instanceof Date ? existing.document.uploadedAt : new Date(existing.document.uploadedAt),
-        },
-        createdAt: existing.createdAt instanceof Date ? existing.createdAt : new Date(existing.createdAt),
-        updatedAt: new Date(),
-      } as ProcurementRequest;
+    if (merged.status === "open") {
       validateOpenFields(merged);
     }
 
     const result = await collection.findOneAndUpdate(
       { _id: new ObjectId(id) },
-      { $set: updateDoc },
+      {
+        $set: {
+          requestor: merged.requestor,
+          requestorDepartment: merged.requestorDepartment,
+          vendor: merged.vendor,
+          commodityGroup: merged.commodityGroup,
+          category: merged.category,
+          description: merged.description,
+          vatId: merged.vatId,
+          orderLines: merged.orderLines,
+          totalCost: merged.totalCost,
+          status: merged.status,
+          updatedAt: merged.updatedAt,
+        },
+      },
       { returnDocument: "after" },
     );
 

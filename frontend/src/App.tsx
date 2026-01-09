@@ -62,9 +62,6 @@ function App() {
             <Heading as="h1" size="xl" color="white">
               Procurement workspace
             </Heading>
-            <Text color="gray.300" maxW="3xl">
-              Upload PDFs, review extractions, and manage pending or submitted requests.
-            </Text>
           </VStack>
         </Flex>
 
