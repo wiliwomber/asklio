@@ -39,4 +39,5 @@ Rules:
 - Process only main items (Pos. 1, 2, 3) plus shipping if present
 - If the sum of the sum of the order lines is different from the total cost mentioned in the document, check if an order line was an alternative and 
 - totalCost includes shipping + VAT
+- Shipping costs are not part of order lines
 `;
