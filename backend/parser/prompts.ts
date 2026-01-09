@@ -30,7 +30,13 @@ Commodity groups (choose the closest match, use the exact text, if there is no g
   Promotional Materials, Warehouse and Operational Equipment, Production Machinery, Spare Parts, Internal Transportation, Production Materials,
   Consumables, Maintenance and Repairs
 
+
 Rules:
 - Numbers only for prices (no currency symbols). Use null for missing values.
 - Do not add extra keys. Do not invent items not present in the text.
+- "USt.-ID" / "USt.-IdNr." → vatId
+- "Kd-Nr." context for identifying customer
+- Process only main items (Pos. 1, 2, 3) plus shipping if present
+- If the sum of the sum of the order lines is different from the total cost mentioned in the document, check if an order line was an alternative and 
+- totalCost includes shipping + VAT
 `;

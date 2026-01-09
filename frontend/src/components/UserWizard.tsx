@@ -254,7 +254,7 @@ export default function UserWizard({ initialRequest = null, onClose, onCloseWith
           {view === "uploading" && (
             <VStack py={10} spacing={3}>
               <Spinner size="xl" color="purple.300" />
-              <Text fontSize="lg" fontWeight="bold" color="gray.50">
+              <Text fontSize="lg" fontWeight="bold" color="gray.500">
                 Uploading…
               </Text>
               <Text color="gray.400">Please wait while we process your PDF.</Text>

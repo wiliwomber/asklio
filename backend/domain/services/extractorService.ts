@@ -62,17 +62,7 @@ async function extractFromText(offerText: string): Promise<OfferExtraction> {
   return OfferExtractionSchema.parse(parsed);
 }
 
-export async function extractProcurementOfferFromPath(pdfPath: string): Promise<OfferExtraction> {
-  try {
-    const offerText = await loadPdfText(pdfPath);
-    return await extractFromText(offerText);
-  } catch (error) {
-    logError("Failed to extract procurement offer from path", error, { pdfPath });
-    throw error;
-  }
-}
-
-export async function extractProcurementOfferFromBuffer(buffer: Buffer): Promise<OfferExtraction> {
+export async function extractProcurementOffer(buffer: Buffer): Promise<OfferExtraction> {
   try {
     const offerText = await loadPdfTextFromBuffer(buffer);
     return await extractFromText(offerText);

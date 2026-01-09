@@ -1,5 +1,5 @@
 import { type NextFunction, type Request, type Response } from "express";
-import { extractProcurementOfferFromBuffer } from "../../domain/services/extractorService.js";
+import { extractProcurementOffer } from "../../domain/services/extractorService.js";
 import {
   createProcurementRequest,
   getProcurementUploadContent,
@@ -16,7 +16,10 @@ export async function uploadPdf(request: Request, response: Response, next: Next
       return;
     }
 
-    const extraction = await extractProcurementOfferFromBuffer(request.file.buffer);
+    const extraction = await extractProcurementOffer(request.file.buffer);
+
+    // For now hardcoded, should be taken from logged in user account
+    extraction.requestorDepartment = "HR"
 
     const procurementRequest = await createProcurementRequest({
       document: {
