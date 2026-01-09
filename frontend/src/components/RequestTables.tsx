@@ -25,6 +25,7 @@ type Props = {
   onUploadNew: () => void;
   onEdit: (request: ProcurementRequest) => void;
   onSubmit: (request: ProcurementRequest) => void;
+  onDelete: (request: ProcurementRequest) => void;
 };
 
 function statusColor(status: string) {
@@ -46,7 +47,7 @@ function formatDate(dateIso: string) {
   return new Date(dateIso).toLocaleString();
 }
 
-export function RequestTables({ pending, other, onUploadNew, onEdit, onSubmit }: Props) {
+export function RequestTables({ pending, other, onUploadNew, onEdit, onSubmit, onDelete }: Props) {
   return (
     <Stack spacing={6}>
       <HStack justify="space-between">
@@ -99,15 +100,19 @@ export function RequestTables({ pending, other, onUploadNew, onEdit, onSubmit }:
                         <Td>{formatDate(req.createdAt)}</Td>
                         <Td>
                           <HStack spacing={2}>
-                            <Button as="a" href={buildPdfUrl(req.id)} target="_blank" rel="noreferrer" size="xs" >
-                              View document
+                            <Button size="xs" colorScheme="red" variant="outline" onClick={() => onDelete(req)}>
+                              Delete
                             </Button>
-                            <Button size="xs" onClick={() => onEdit(req)}>
+                            <Button as="a" href={buildPdfUrl(req.id)} target="_blank" rel="noreferrer" size="xs" colorScheme="purple" variant="outline" >
+                              View
+                            </Button>
+                            <Button size="xs" onClick={() => onEdit(req)} variant="outline" colorScheme="purple">
                               Edit
                             </Button>
                             <Button size="xs" colorScheme="purple" onClick={() => onSubmit(req)} isDisabled={!complete}>
                               Submit
                             </Button>
+
                           </HStack>
                         </Td>
                       </Tr>

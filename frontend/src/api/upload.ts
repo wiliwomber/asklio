@@ -47,3 +47,13 @@ export async function updateProcurementRequest(id: string, payload: Partial<Uplo
 
   return response.json();
 }
+
+export async function deleteProcurementRequest(id: string): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/api/requests/${id}`, {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to delete procurement request");
+  }
+}

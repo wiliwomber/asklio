@@ -5,6 +5,7 @@ import {
   getProcurementUploadContent,
   updateProcurementRequest,
   listProcurementRequests,
+  deleteProcurementRequest,
 } from "../../domain/services/procurementRequestService.js";
 import { logError } from "../../utils/logger.js";
 
@@ -82,6 +83,21 @@ export async function updateProcurementRequestController(request: Request, respo
     response.json(updated);
   } catch (error) {
     logError("Failed to update procurement request", error, { id: request.params.id });
+    next(error);
+  }
+}
+
+export async function deleteProcurementRequestController(request: Request, response: Response, next: NextFunction) {
+  try {
+    const { id } = request.params;
+    const deleted = await deleteProcurementRequest(id);
+    if (!deleted) {
+      response.status(404).json({ error: "Procurement request not found" });
+      return;
+    }
+    response.status(204).send();
+  } catch (error) {
+    logError("Failed to delete procurement request", error, { id: request.params.id });
     next(error);
   }
 }

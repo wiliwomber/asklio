@@ -5,6 +5,7 @@ import {
   listUploadsController,
   updateProcurementRequestController,
   uploadPdf,
+  deleteProcurementRequestController,
 } from "../controllers/uploadController.js";
 
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
@@ -35,6 +36,7 @@ export function createUploadRouter() {
   router.get("/uploads", listUploadsController);
   router.get("/uploads/:id", getUploadByIdController);
   router.patch("/requests/:id", updateProcurementRequestController);
+  router.delete("/requests/:id", deleteProcurementRequestController);
 
   return router;
 }

@@ -176,6 +176,28 @@ export async function getProcurementUploadContent(id: string) {
   };
 }
 
+export async function deleteProcurementRequest(id: string): Promise<boolean> {
+  if (!ObjectId.isValid(id)) {
+    throw new Error("Invalid procurement request id");
+  }
+
+  try {
+    const collection = await getProcurementRequestsCollection();
+    const existing = await collection.findOne({ _id: new ObjectId(id) });
+    if (!existing) {
+      return false;
+    }
+    if (existing.status !== "pending") {
+      throw new Error("Only pending requests can be deleted");
+    }
+    const result = await collection.deleteOne({ _id: new ObjectId(id) });
+    return result.deletedCount === 1;
+  } catch (error) {
+    logError("Failed to delete procurement request", error, { id });
+    throw error;
+  }
+}
+
 export async function updateProcurementRequest(
   id: string,
   updates: Partial<

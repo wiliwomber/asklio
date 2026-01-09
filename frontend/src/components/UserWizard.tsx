@@ -188,7 +188,7 @@ export default function UserWizard({ initialRequest = null, onClose, onCloseWith
           )}
 
           {view === "upload" && (
-            <Stack spacing={4} w="100%" maxW="600px" minH={"400px"} >
+            <Stack spacing={4} w="100%" maxW="600px" minH={"400px"} align={"center"}>
               {selectedFile && <Text color="gray.200">{selectedFile.name}</Text>}
               {!selectedFile && <Text color="gray.200"><Text color="gray.600">No file selected.</Text></Text>}
               <input

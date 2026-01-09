@@ -1,6 +1,6 @@
 import { Badge, Box, Container, Flex, Heading, Text, VStack, useDisclosure } from "@chakra-ui/react";
 import { useEffect, useMemo, useState } from "react";
-import { fetchUploads, updateProcurementRequest } from "./api/upload";
+import { fetchUploads, updateProcurementRequest, deleteProcurementRequest } from "./api/upload";
 import UserWizard from "./components/UserWizard";
 import { RequestTables } from "./components/RequestTables";
 import { type ProcurementRequest } from "./types";
@@ -66,7 +66,18 @@ function App() {
         </Flex>
 
         {!isOpen && (
-          <RequestTables pending={pending} other={other} onUploadNew={handleUploadNew} onEdit={handleEdit} onSubmit={handleSubmitDirect} />
+
+          <RequestTables
+            pending={pending}
+            other={other}
+            onUploadNew={handleUploadNew}
+            onEdit={handleEdit}
+            onSubmit={handleSubmitDirect}
+            onDelete={async (req) => {
+              await deleteProcurementRequest(req.id);
+              await loadRequests();
+            }}
+          />
         )}
 
         {isOpen && (
