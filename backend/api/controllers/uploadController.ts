@@ -3,6 +3,7 @@ import { extractProcurementOfferFromBuffer } from "../../domain/services/extract
 import {
   createProcurementRequest,
   getProcurementUploadContent,
+  updateProcurementRequest,
   listProcurementRequests,
 } from "../../domain/services/procurementRequestService.js";
 import { logError } from "../../utils/logger.js";
@@ -25,6 +26,7 @@ export async function uploadPdf(request: Request, response: Response, next: Next
         uploadedAt: new Date(),
       },
       extraction,
+      status: "pending",
     });
 
     response.status(200).json({
@@ -63,6 +65,23 @@ export async function getUploadByIdController(request: Request, response: Respon
     response.send(upload.data);
   } catch (error) {
     logError("Failed to fetch upload by id", error, { uploadId: request.params.id });
+    next(error);
+  }
+}
+
+export async function updateProcurementRequestController(request: Request, response: Response, next: NextFunction) {
+  try {
+    const { id } = request.params;
+    const updated = await updateProcurementRequest(id, request.body);
+
+    if (!updated) {
+      response.status(404).json({ error: "Procurement request not found" });
+      return;
+    }
+
+    response.json(updated);
+  } catch (error) {
+    logError("Failed to update procurement request", error, { id: request.params.id });
     next(error);
   }
 }

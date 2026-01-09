@@ -1,6 +1,11 @@
 import { Router } from "express";
 import multer from "multer";
-import { getUploadByIdController, listUploadsController, uploadPdf } from "../controllers/uploadController.js";
+import {
+  getUploadByIdController,
+  listUploadsController,
+  updateProcurementRequestController,
+  uploadPdf,
+} from "../controllers/uploadController.js";
 
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
 
@@ -29,6 +34,7 @@ export function createUploadRouter() {
   router.post("/uploads", upload.single("file"), uploadPdf);
   router.get("/uploads", listUploadsController);
   router.get("/uploads/:id", getUploadByIdController);
+  router.patch("/requests/:id", updateProcurementRequestController);
 
   return router;
 }

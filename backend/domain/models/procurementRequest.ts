@@ -2,7 +2,7 @@ import { type Binary, type ObjectId } from "mongodb";
 import { z } from "zod";
 import { OrderLineSchema, type OfferExtraction } from "./offerSchemas.js";
 
-export const ProcurementStatusSchema = z.enum(["open", "inprogress", "closed"]);
+export const ProcurementStatusSchema = z.enum(["pending", "open", "inprogress", "closed"]);
 export type ProcurementStatus = z.infer<typeof ProcurementStatusSchema>;
 
 export type DocumentPayload = {
@@ -19,6 +19,7 @@ export type ProcurementRequest = {
   document: DocumentPayload;
   // Flattened extraction data
   requestor?: string | null;
+  requestorDepartment?: string | null;
   vendor?: string | null;
   commodityGroup?: string | null;
   category?: string | null;

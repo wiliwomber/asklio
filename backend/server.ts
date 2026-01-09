@@ -31,6 +31,7 @@ export function createServer() {
   const app = express();
 
   app.use(cors({ origin: true }));
+  app.use(express.json({ limit: "15mb" }));
   app.use("/api", createUploadRouter());
   app.use(errorHandler);
 

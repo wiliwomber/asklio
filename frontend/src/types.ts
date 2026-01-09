@@ -1,4 +1,4 @@
-export type ProcurementStatus = "open" | "inprogress" | "closed";
+export type ProcurementStatus = "pending" | "open" | "inprogress" | "closed";
 
 export type OrderLine = {
   product?: string | null;
@@ -22,6 +22,7 @@ export type ProcurementRequest = {
   id: string;
   status: ProcurementStatus;
   requestor?: string | null;
+  requestorDepartment?: string | null;
   vendor?: string | null;
   commodityGroup?: string | null;
   category?: string | null;

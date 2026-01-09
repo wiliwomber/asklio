@@ -33,3 +33,17 @@ export async function fetchUploads(): Promise<UploadSummary[]> {
 export function buildPdfUrl(id: string): string {
   return `${API_BASE_URL}/api/uploads/${id}`;
 }
+
+export async function updateProcurementRequest(id: string, payload: Partial<UploadSummary>): Promise<UploadSummary> {
+  const response = await fetch(`${API_BASE_URL}/api/requests/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to update procurement request");
+  }
+
+  return response.json();
+}
