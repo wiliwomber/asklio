@@ -106,16 +106,43 @@ export default function UserWizard({ initialRequest = null, onClose, onCloseWith
     if (!request) return;
     const nextLines = [...(request.orderLines ?? [])];
     const line = nextLines[index] ?? {};
-    nextLines[index] = {
-      ...line,
-      [field]: field === "product" ? value : value === "" ? null : Number(value),
-    };
-    setRequest({ ...request, orderLines: nextLines });
+
+    const parsed = value === "" ? null : Number(value);
+    const nextLine: OrderLine = { ...line };
+
+    if (field === "product") {
+      nextLine.product = value;
+    } else if (field === "unitPrice") {
+      nextLine.unitPrice = parsed;
+    } else if (field === "quantity") {
+      nextLine.quantity = parsed;
+    } else {
+      nextLine[field] = parsed as number | null;
+    }
+
+    const unitPrice = nextLine.unitPrice ?? null;
+    const quantity = nextLine.quantity ?? null;
+    nextLine.totalCost = unitPrice !== null && quantity !== null ? unitPrice * quantity : null;
+
+    nextLines[index] = nextLine;
+
+    const totalCost = computeOrderLinesTotal(nextLines);
+    setRequest({ ...request, orderLines: nextLines, totalCost });
   };
 
   const addOrderLine = () => {
     if (!request) return;
-    setRequest({ ...request, orderLines: [...(request.orderLines ?? []), {}] });
+    const updatedLines = [...(request.orderLines ?? []), {}];
+    const totalCost = computeOrderLinesTotal(updatedLines);
+    setRequest({ ...request, orderLines: updatedLines, totalCost });
+  };
+
+  const removeOrderLine = (index: number) => {
+    if (!request) return;
+    const updatedLines = [...(request.orderLines ?? [])];
+    updatedLines.splice(index, 1);
+    const totalCost = computeOrderLinesTotal(updatedLines);
+    setRequest({ ...request, orderLines: updatedLines, totalCost });
   };
 
   const isFormValid = useMemo(() => isRequestComplete(request), [request]);
@@ -150,6 +177,14 @@ export default function UserWizard({ initialRequest = null, onClose, onCloseWith
   };
 
   const iframeSrc = pdfUrl ? `${pdfUrl}#toolbar=0&navpanes=0&scrollbar=0&view=FitH` : null;
+
+  function computeOrderLinesTotal(lines: OrderLine[]): number | null {
+    const sum = lines.reduce((acc, l) => {
+      if (l.totalCost === null || l.totalCost === undefined || !Number.isFinite(l.totalCost)) return acc;
+      return acc + (l.totalCost as number);
+    }, 0);
+    return lines.length > 0 ? sum : null;
+  }
 
   return (
     <Card
@@ -286,12 +321,10 @@ export default function UserWizard({ initialRequest = null, onClose, onCloseWith
                         ))}
                       </Select>
                     </FormControl>
-                    <FormControl isRequired isInvalid={request.totalCost === null || request.totalCost === undefined}>
+                    <FormControl isRequired>
                       <FormLabel>Total cost</FormLabel>
-                      <NumberInput value={request.totalCost ?? undefined} precision={2} min={0}>
-                        <NumberInputField
-                          onChange={(e) => setRequest({ ...request, totalCost: e.target.value === "" ? null : Number(e.target.value) })}
-                        />
+                      <NumberInput value={request.totalCost ?? undefined} precision={2} min={0} isDisabled>
+                        <NumberInputField />
                       </NumberInput>
                     </FormControl>
                   </SimpleGrid>
@@ -372,23 +405,11 @@ export default function UserWizard({ initialRequest = null, onClose, onCloseWith
                           </NumberInput>
                         </FormControl>
 
-                        {/* Total: 1/3 width */}
-                        <FormControl
-                          isRequired
-                          isInvalid={line.totalCost === null || line.totalCost === undefined}
-                        >
+                        {/* Total: computed */}
+                        <FormControl isReadOnly>
                           <FormLabel>Total</FormLabel>
-                          <NumberInput
-                            value={line.totalCost ?? undefined}
-                            precision={2}
-                            min={0}
-                          >
-                            <NumberInputField
-                              placeholder="Total"
-                              onChange={(e) =>
-                                handleOrderLineChange(index, "totalCost", e.target.value)
-                              }
-                            />
+                          <NumberInput value={line.totalCost ?? undefined} precision={2} min={0} isDisabled textColor={"black"}>
+                            <NumberInputField placeholder="Total" />
                           </NumberInput>
                         </FormControl>
                       </SimpleGrid>
