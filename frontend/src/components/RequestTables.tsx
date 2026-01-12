@@ -44,7 +44,11 @@ function statusColor(status: string) {
 }
 
 function formatDate(dateIso: string) {
-  return new Date(dateIso).toLocaleString();
+  return new Date(dateIso).toLocaleDateString("de-DE", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
 }
 
 export function RequestTables({ pending, other, onUploadNew, onEdit, onSubmit, onDelete }: Props) {
@@ -76,8 +80,8 @@ export function RequestTables({ pending, other, onUploadNew, onEdit, onSubmit, o
                   <Tr>
                     <Th color="gray.300">Requestor</Th>
                     <Th color="gray.300">Vendor</Th>
+                    <Th color="gray.300">File Name</Th>
                     <Th color="gray.300">Commodity</Th>
-                    <Th color="gray.300">Category</Th>
                     <Th color="gray.300">Status</Th>
                     <Th color="gray.300">Created</Th>
                     <Th color="gray.300">Actions</Th>
@@ -90,8 +94,8 @@ export function RequestTables({ pending, other, onUploadNew, onEdit, onSubmit, o
                       <Tr key={req.id}>
                         <Td>{req.requestor ?? "—"}</Td>
                         <Td>{req.vendor ?? "—"}</Td>
+                        <Td>{req.document.fileName ?? "—"}</Td>
                         <Td>{req.commodityGroup ?? "—"}</Td>
-                        <Td>{req.category ?? "—"}</Td>
                         <Td>
                           <Badge colorScheme={statusColor(req.status)} textTransform="capitalize">
                             {req.status}
@@ -139,8 +143,8 @@ export function RequestTables({ pending, other, onUploadNew, onEdit, onSubmit, o
                   <Tr>
                     <Th color="gray.300">Requestor</Th>
                     <Th color="gray.300">Vendor</Th>
+                    <Th color="gray.300">File Name</Th>
                     <Th color="gray.300">Commodity</Th>
-                    <Th color="gray.300">Category</Th>
                     <Th color="gray.300">Status</Th>
                     <Th color="gray.300">Submitted</Th>
                     <Th color="gray.300">Action</Th>
@@ -151,8 +155,8 @@ export function RequestTables({ pending, other, onUploadNew, onEdit, onSubmit, o
                     <Tr key={req.id}>
                       <Td>{req.requestor ?? "—"}</Td>
                       <Td>{req.vendor ?? "—"}</Td>
+                      <Td>{req.document.fileName ?? "—"}</Td>
                       <Td>{req.commodityGroup ?? "—"}</Td>
-                      <Td>{req.category ?? "—"}</Td>
                       <Td>
                         <Badge colorScheme={statusColor(req.status)} textTransform="capitalize">
                           {req.status}

@@ -200,7 +200,7 @@ export default function UserWizard({ initialRequest = null, onClose, onCloseWith
             <HStack justify="space-between" align="center">
               <VStack align="flex-start" spacing={1}>
                 <Text fontSize="lg" fontWeight="bold" color="black">
-                  Procurement request wizard
+                  New procurement request
                 </Text>
                 <Text color="gray.600">
                   {view === "upload" && "Upload a PDF for automated processing."}
